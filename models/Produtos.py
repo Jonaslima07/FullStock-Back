@@ -11,7 +11,7 @@ class Produto(db.Model):
     marca = db.Column(db.String(100), nullable=True)
     unidade = db.Column(db.String(50), nullable=True)
     data_validade = db.Column(db.Date, nullable=False)
-    comercio_id = db.Column(db.Integer,db.ForeignKey("comercios.id"), nullable=False)
+    comercio_id = db.Column(db.Integer,db.ForeignKey("comercios.id"),nullable=False,index=True)
 
     def __repr__(self):
         return f"<Produto {self.nome}>"

@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash
+from werkzeug.security import check_password_hash
 from marshmallow import ValidationError
 
 from models.Usuarios import Usuario
@@ -61,7 +62,38 @@ def criar_usuario():
 
     return usuario_schema.dump(usuario), 201
 
+@usuarios_bp.route("/usuarios/login", methods=["POST"])
+def login():
+    data = request.get_json()
 
+
+    if not data:
+        return jsonify({"error": "JSON inválido"}), 400
+
+    email = data.get("email")
+    senha = data.get("senha")
+
+    if not email or not senha:
+        return jsonify({"error": "Email e senha obrigatórios"}), 400
+
+    usuario = Usuario.query.filter_by(email=email).first()
+
+    if not usuario:
+        return jsonify({"error": "Usuário não encontrado"}), 404
+
+    if not usuario.senha or not check_password_hash(usuario.senha, senha):
+        return jsonify({"error": "Senha incorreta"}), 401
+
+    access_token = create_access_token(identity=str(usuario.id))
+
+    return jsonify({
+        "access_token": access_token,
+        "user": {
+            "id": usuario.id,
+            "nome": usuario.nome,
+            "email": usuario.email
+        }
+    }), 200
 
 @usuarios_bp.route("/usuarios/completar-cadastro", methods=["POST"])
 @jwt_required()

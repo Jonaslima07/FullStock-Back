@@ -14,40 +14,29 @@ produto_schema = ProdutoSchema()
 produtos_schema = ProdutoSchema(many=True)
 
 
-
+# LISTAR PRODUTOS
 @produtos_bp.route("/produtos", methods=["GET"])
 @jwt_required()
 def listar_produtos():
 
     user_id = int(get_jwt_identity())
 
-    usuario = Usuario.query.get(user_id)
+    usuario = db.session.get(Usuario, user_id)
 
     if not usuario:
         return jsonify({"msg": "Usuário não encontrado"}), 404
 
-  
+    if not usuario.comercio:
+        return jsonify({"msg": "Usuário sem comércio"}), 400
 
     produtos = Produto.query.filter_by(
         comercio_id=usuario.comercio.id
     ).all()
-    
-    lista = []
 
-    for p in produtos:
-        lista.append({
-            "id": p.id,
-            "nome": p.nome,
-            "marca": p.marca,
-            "categoria": p.categoria,
-            "quantidade": p.quantidade,
-            "preco": p.preco,
-            "unidade": p.unidade,
-            "data_validade": str(p.data_validade)
-        })
+    return jsonify(produtos_schema.dump(produtos)), 200
 
-    return jsonify(lista), 200
 
+# CRIAR PRODUTO
 @produtos_bp.route("/produtos", methods=["POST"])
 @jwt_required()
 def criar_produto():
@@ -58,16 +47,13 @@ def criar_produto():
         return jsonify(err.messages), 400
 
     user_id = int(get_jwt_identity())
-
-    usuario = Usuario.query.get(user_id)
+    usuario = db.session.get(Usuario, user_id)
 
     if not usuario:
         return jsonify({"msg": "Usuário não encontrado"}), 404
 
     if not usuario.comercio:
         return jsonify({"msg": "Usuário sem comércio"}), 400
-
-    comercio_id = usuario.comercio.id
 
     produto = Produto(
         nome=dados["nome"],
@@ -77,54 +63,44 @@ def criar_produto():
         marca=dados["marca"],
         unidade=dados["unidade"],
         data_validade=dados["data_validade"],
-        comercio_id=comercio_id
+        comercio_id=usuario.comercio.id
     )
 
     db.session.add(produto)
     db.session.commit()
 
-    return produto_schema.dump(produto), 201
+    return jsonify(produto_schema.dump(produto)), 201
 
 
+# ATUALIZAR PRODUTO
 @produtos_bp.route("/produtos/<int:id>", methods=["PUT"])
+@jwt_required()
 def atualizar_produtos(id):
 
-    produtos = Produto.query.get_or_404(id)
+    produto = db.session.get(Produto, id)
+
+    if not produto:
+        return jsonify({"msg": "Produto não encontrado"}), 404
 
     try:
         dados = produto_schema.load(request.json, partial=True)
-
     except ValidationError as err:
         return jsonify(err.messages), 400
-    
-    if "nome" in dados:
-        produtos.nome = dados["nome"]
 
-    if "categoria" in dados:
-        produtos.categoria = dados["categoria"]
-
-    if "quantidade" in dados:
-        produtos.quantidade = dados["quantidade"]
-
-    if "preco" in dados:
-        produtos.preco = dados["preco"]
-
-    if "marca" in dados:
-        produtos.marca = dados["marca"]
-
-    if "unidade" in dados:
-        produtos.unidade = dados["unidade"]
-    
-    if "data_validade" in dados:
-        produtos.data_validade = dados["data_validade"]
+    for campo, valor in dados.items():
+        setattr(produto, campo, valor)
 
     db.session.commit()
 
-    return produto_schema.dump(produtos), 200
+    return jsonify(produto_schema.dump(produto)), 200
 
+
+# DELETAR PRODUTO
 @produtos_bp.route("/produtos/<int:id>", methods=["DELETE"])
+@jwt_required()
 def deletar_produto(id):
-    produto = Produto.query.get(id)
+
+    produto = db.session.get(Produto, id)
 
     if not produto:
         return jsonify({"error": "Produto não encontrado"}), 404
@@ -133,4 +109,3 @@ def deletar_produto(id):
     db.session.commit()
 
     return jsonify({"message": "Produto removido com sucesso"}), 200
-

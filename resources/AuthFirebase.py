@@ -45,16 +45,17 @@ def auth_google():
 
 
         return jsonify({
-            "token": access_token,
-            "user": {
-                "id": usuario.id,
-                "nome": usuario.nome,
-                "email": usuario.email,
-                "photo": usuario.photo,
-                "cpf": usuario.cpf,
-                "cadastro_completo": usuario.cadastro_completo
-            }
-        }), 200
+    "access_token": access_token,
+    "user": {
+        "id": usuario.id,
+        "nome": usuario.nome,
+        "email": usuario.email,
+        "photo": usuario.photo,
+        "cpf": usuario.cpf,
+        "cadastro_completo": usuario.cadastro_completo
+    }
+}), 200
+          
 
     except firebase_auth.ExpiredIdTokenError:
         return jsonify({"error": "Token Firebase expirado"}), 401
