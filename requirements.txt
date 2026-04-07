@@ -3,7 +3,6 @@ cors == 1.0.1
 gunicorn == 25.1.0
 Flask-RESTful==0.3.10
 python-dotenv==1.0.1
-psycopg2-binary==2.9.9
 Flask == 3.1.2
 Flask-Migrate ==4.1.0
 firebase-admin==6.9.0
