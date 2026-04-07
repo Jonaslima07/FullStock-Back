@@ -1,22 +1,21 @@
-SQLAlchemy == 2.0.44
-cors == 1.0.1
-gunicorn == 25.1.0
+Flask==3.1.2
 Flask-RESTful==0.3.10
-python-dotenv==1.0.1
-Flask == 3.1.2
-Flask-Migrate ==4.1.0
+Flask-SQLAlchemy==3.1.1
+Flask-Migrate==4.1.0
+Flask-Marshmallow==1.3.0
+Flask-Cors==4.0.0
+Flask-Caching==2.1.0
+flask-jwt-extended==4.6.0
+
+SQLAlchemy==2.0.44
+marshmallow==3.21.1
+marshmallow-sqlalchemy==1.0.0
+
 firebase-admin==6.9.0
-flask-marshmallow==1.3.0
-Flask>=3.0.0
-Flask-SQLAlchemy>=3.1.1
-Flask-Migrate>=4.0.5
-Flask-Marshmallow>=1.2.1
-marshmallow>=3.20.1
-marshmallow-sqlalchemy>=1.0.0
-Flask-Cors>=4.0.0
-Flask-Caching>=2.1.0
-psycopg2-binary>=2.9.9
-python-dotenv>=1.0.1
-redis>=5.0.1
-oauth2 ==1.9.0.post1
-flask-jwt-extended>=4.6.0
+python-dotenv==1.0.1
+
+gunicorn==25.1.0
+psycopg2-binary==2.9.9
+
+redis==5.0.1
+oauth2==1.9.0.post1
