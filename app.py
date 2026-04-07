@@ -24,7 +24,7 @@ app.config["JWT_SECRET_KEY"] = os.getenv("SECRET_KEY")
 
 app.config.update({
     "CACHE_TYPE": "RedisCache",
-    "CACHE_REDIS_HOST": "localhost",
+    "CACHE_REDIS_HOST": "redis",
     "CACHE_REDIS_PORT": 6379,
     "CACHE_DEFAULT_TIMEOUT": 60
 })

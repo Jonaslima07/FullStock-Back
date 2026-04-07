@@ -26,27 +26,28 @@ def listar_produtos():
     if not usuario:
         return jsonify({"msg": "Usuário não encontrado"}), 404
 
-    if not usuario.comercio:
-        return jsonify({"msg": "Usuário sem comércio"}), 400
-
-    page = request.args.get("page", 1, type=int)
-    per_page = 50
-
-    if per_page > 100:
-        per_page = 100
+  
 
     produtos = Produto.query.filter_by(
         comercio_id=usuario.comercio.id
-    ).paginate(page=page, per_page=per_page)
+    ).all()
+    
+    lista = []
 
-    return jsonify({
-        "produtos": produtos_schema.dump(produtos.items),
-        "total": produtos.total,
-        "pages": produtos.pages,
-        "page": produtos.page
-    }), 200
+    for p in produtos:
+        lista.append({
+            "id": p.id,
+            "nome": p.nome,
+            "marca": p.marca,
+            "categoria": p.categoria,
+            "quantidade": p.quantidade,
+            "preco": p.preco,
+            "unidade": p.unidade,
+            "data_validade": str(p.data_validade)
+        })
 
-# CRIAR PRODUTO
+    return jsonify(lista), 200
+
 @produtos_bp.route("/produtos", methods=["POST"])
 @jwt_required()
 def criar_produto():
@@ -71,6 +72,7 @@ def criar_produto():
         quantidade=dados["quantidade"],
         preco=dados["preco"],
         marca=dados["marca"],
+        tipo=dados["tipo"],
         unidade=dados["unidade"],
         data_validade=dados["data_validade"],
         comercio_id=usuario.comercio.id
@@ -96,9 +98,27 @@ def atualizar_produtos(id):
         dados = produto_schema.load(request.json, partial=True)
     except ValidationError as err:
         return jsonify(err.messages), 400
+    
+    if "nome" in dados:
+        produtos.nome = dados["nome"]
 
-    for campo, valor in dados.items():
-        setattr(produto, campo, valor)
+    if "categoria" in dados:
+        produtos.categoria = dados["categoria"]
+
+    if "quantidade" in dados:
+        produtos.quantidade = dados["quantidade"]
+
+    if "preco" in dados:
+        produtos.preco = dados["preco"]
+
+    if "marca" in dados:
+        produtos.marca = dados["marca"]
+
+    if "unidade" in dados:
+        produtos.unidade = dados["unidade"]
+    
+    if "data_validade" in dados:
+        produtos.data_validade = dados["data_validade"]
 
     db.session.commit()
 

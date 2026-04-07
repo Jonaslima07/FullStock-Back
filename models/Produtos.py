@@ -7,6 +7,7 @@ class Produto(db.Model):
     nome = db.Column(db.String(100), nullable=False)
     categoria = db.Column(db.String(50))
     quantidade = db.Column(db.Integer, default=0)
+    tipo = db.Column(db.String(50), nullable=True)
     preco = db.Column(db.Float)
     marca = db.Column(db.String(100), nullable=True)
     unidade = db.Column(db.String(50), nullable=True)

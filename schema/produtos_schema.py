@@ -14,6 +14,11 @@ class ProdutoSchema(Schema):
         validate=validate.Length(min=3)
     )
 
+    tipo = fields.Str(
+        required=True,
+        validate=validate.Length(min=5)
+    )
+
     quantidade = fields.Int(
         required=True,
         validate=validate.Range(min=0)
