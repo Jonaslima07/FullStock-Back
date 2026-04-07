@@ -29,12 +29,22 @@ def listar_produtos():
     if not usuario.comercio:
         return jsonify({"msg": "Usuário sem comércio"}), 400
 
+    page = request.args.get("page", 1, type=int)
+    per_page = 50
+
+    if per_page > 100:
+        per_page = 100
+
     produtos = Produto.query.filter_by(
         comercio_id=usuario.comercio.id
-    ).all()
+    ).paginate(page=page, per_page=per_page)
 
-    return jsonify(produtos_schema.dump(produtos)), 200
-
+    return jsonify({
+        "produtos": produtos_schema.dump(produtos.items),
+        "total": produtos.total,
+        "pages": produtos.pages,
+        "page": produtos.page
+    }), 200
 
 # CRIAR PRODUTO
 @produtos_bp.route("/produtos", methods=["POST"])
