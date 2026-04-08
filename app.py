@@ -22,13 +22,13 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 app.config["JWT_SECRET_KEY"] = os.getenv("SECRET_KEY")
 
-app.config.update({
-    "CACHE_TYPE": "RedisCache",
-    "CACHE_REDIS_HOST": "redis",
-    "CACHE_REDIS_PORT": 6379,
-    "CACHE_DEFAULT_TIMEOUT": 60
-})
-
+REDIS_URL = os.getenv("REDIS_URL")
+if REDIS_URL:
+    app.config.update({
+        "CACHE_TYPE": "RedisCache",
+        "CACHE_REDIS_URL": REDIS_URL,
+        "CACHE_DEFAULT_TIMEOUT": 60
+    })
 
 cors.init_app(app)
 
