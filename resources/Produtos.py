@@ -39,6 +39,7 @@ def listar_produtos():
             "id": p.id,
             "nome": p.nome,
             "marca": p.marca,
+            "tipo": p.tipo,
             "categoria": p.categoria,
             "quantidade": p.quantidade,
             "preco": p.preco,
@@ -100,25 +101,28 @@ def atualizar_produtos(id):
         return jsonify(err.messages), 400
     
     if "nome" in dados:
-        produtos.nome = dados["nome"]
+        produto.nome = dados["nome"]
 
     if "categoria" in dados:
-        produtos.categoria = dados["categoria"]
+        produto.categoria = dados["categoria"]
 
     if "quantidade" in dados:
-        produtos.quantidade = dados["quantidade"]
+        produto.quantidade = dados["quantidade"]
 
     if "preco" in dados:
-        produtos.preco = dados["preco"]
+        produto.preco = dados["preco"]
 
     if "marca" in dados:
-        produtos.marca = dados["marca"]
+        produto.marca = dados["marca"]
+
+    if "tipo" in dados:
+        produto.tipo = dados["tipo"]
 
     if "unidade" in dados:
-        produtos.unidade = dados["unidade"]
+        produto.unidade = dados["unidade"]
     
     if "data_validade" in dados:
-        produtos.data_validade = dados["data_validade"]
+        produto.data_validade = dados["data_validade"]
 
     db.session.commit()
 
