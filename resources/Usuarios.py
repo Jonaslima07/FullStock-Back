@@ -7,6 +7,7 @@ from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash
 from marshmallow import ValidationError
 from extensions.limiter import limiter
+from sqlalchemy.exc import IntegrityError
 
 from models.Usuarios import Usuario
 from schema.usuario_schema import UsuarioSchema
@@ -38,7 +39,6 @@ def get_usuario_logado():
     })
 
 
-
 @usuarios_bp.route("/usuarios", methods=["POST"])
 @jwt_required()
 def criar_usuario():
@@ -46,6 +46,12 @@ def criar_usuario():
         dados = usuario_schema.load(request.json)
     except ValidationError as err:
         return jsonify(err.messages), 400
+
+    # 🔥 VERIFICA ANTES (melhor UX)
+    usuario_existente = Usuario.query.filter_by(email=dados["email"]).first()
+    if usuario_existente:
+        logger.warning(f"TENTATIVA EMAIL DUPLICADO | EMAIL: {dados['email']}")
+        return jsonify({"error": "Email já cadastrado"}), 409
 
     usuario = Usuario(
         nome=dados["nome"],
@@ -55,8 +61,13 @@ def criar_usuario():
         cadastro_completo=True
     )
 
-    db.session.add(usuario)
-    db.session.commit()
+    try:
+        db.session.add(usuario)
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        logger.error(f"ERRO BANCO (EMAIL DUPLICADO) | EMAIL: {dados['email']}")
+        return jsonify({"error": "Email já cadastrado"}), 409
 
     return usuario_schema.dump(usuario), 201
 
@@ -64,7 +75,7 @@ def criar_usuario():
 @limiter.limit("5 per minute")
 @limiter.limit("20 per hour")
 def login():
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     ip = request.remote_addr
 
     if not data:
