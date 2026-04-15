@@ -1,8 +1,12 @@
+import logging
+
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+
 from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash
 from marshmallow import ValidationError
+from extensions.limiter import limiter
 
 from models.Usuarios import Usuario
 from schema.usuario_schema import UsuarioSchema
@@ -15,13 +19,7 @@ usuario_schema = UsuarioSchema()
 usuarios_schema = UsuarioSchema(many=True)
 completar_schema = CompletarCadastroSchema()
 
-
-
-@usuarios_bp.route("/usuarios", methods=["GET"])
-@jwt_required
-def capturar_usuarios():
-    usuarios = Usuario.query.all()
-    return jsonify(usuarios_schema.dump(usuarios)), 200
+logger = logging.getLogger(__name__)
 
 
 @usuarios_bp.route("/usuarios/me", methods=["GET"])
@@ -63,26 +61,30 @@ def criar_usuario():
     return usuario_schema.dump(usuario), 201
 
 @usuarios_bp.route("/usuarios/login", methods=["POST"])
+@limiter.limit("5 per minute")
+@limiter.limit("20 per hour")
 def login():
     data = request.get_json()
-
+    ip = request.remote_addr
 
     if not data:
+        logger.warning(f"LOGIN inválido | IP: {ip}")
         return jsonify({"error": "JSON inválido"}), 400
 
     email = data.get("email")
     senha = data.get("senha")
 
     if not email or not senha:
-        return jsonify({"error": "Email e senha obrigatórios"}), 400
+        logger.warning(f"LOGIN incompleto | IP: {ip} | EMAIL: {email}")
+        return jsonify({"error": "Credenciais inválidas"}), 401
 
     usuario = Usuario.query.filter_by(email=email).first()
 
-    if not usuario:
-        return jsonify({"error": "Usuário não encontrado"}), 404
+    if not usuario or not usuario.senha or not check_password_hash(usuario.senha, senha):
+        logger.warning(f"LOGIN falhou | IP: {ip} | EMAIL: {email}")
+        return jsonify({"error": "Credenciais inválidas"}), 401
 
-    if not usuario.senha or not check_password_hash(usuario.senha, senha):
-        return jsonify({"error": "Senha incorreta"}), 401
+    logger.info(f"LOGIN sucesso | IP: {ip} | USER_ID: {usuario.id}")
 
     access_token = create_access_token(identity=str(usuario.id))
 

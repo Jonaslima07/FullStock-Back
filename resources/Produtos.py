@@ -14,7 +14,7 @@ produto_schema = ProdutoSchema()
 produtos_schema = ProdutoSchema(many=True)
 
 
-# LISTAR PRODUTOS
+
 @produtos_bp.route("/produtos", methods=["GET"])
 @jwt_required()
 def listar_produtos():
@@ -85,7 +85,7 @@ def criar_produto():
     return jsonify(produto_schema.dump(produto)), 201
 
 
-# ATUALIZAR PRODUTO
+
 @produtos_bp.route("/produtos/<int:id>", methods=["PUT"])
 @jwt_required()
 def atualizar_produtos(id):
@@ -129,7 +129,7 @@ def atualizar_produtos(id):
     return jsonify(produto_schema.dump(produto)), 200
 
 
-# DELETAR PRODUTO
+
 @produtos_bp.route("/produtos/<int:id>", methods=["DELETE"])
 @jwt_required()
 def deletar_produto(id):
