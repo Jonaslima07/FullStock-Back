@@ -1,7 +1,11 @@
 from flask import Flask
 from dotenv import load_dotenv
 import os
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+import logging
 from flask_marshmallow import Marshmallow
+from extensions.limiter import limiter
 from flask_migrate import Migrate
 from helpers import cors
 from extensions.cache import cache
@@ -29,6 +33,26 @@ if REDIS_URL:
         "CACHE_REDIS_URL": REDIS_URL,
         "CACHE_DEFAULT_TIMEOUT": 60
     })
+
+
+limiter = Limiter(
+    key_func=get_remote_address,
+    app=app,
+    storage_uri=REDIS_URL if REDIS_URL else "memory://"
+)
+
+limiter.init_app(app)
+
+if REDIS_URL:
+    limiter.storage_uri = REDIS_URL
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s"
+)
+
+logger = logging.getLogger(__name__)
 
 cors.init_app(app)
 
